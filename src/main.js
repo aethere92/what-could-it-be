@@ -48,7 +48,7 @@ const steps = [
 	{
 		text: "🎉 Congratulations! You've discovered your gift! 🎁",
 		description: "It's a brand new hoodie! I hope you'll love wearing it!",
-		image: '/images/gift.webp',
+		image: '../images/gift.webp',
 		final: true,
 	},
 ];
