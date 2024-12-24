@@ -30,6 +30,7 @@ const steps = [
 			correctIndex: 1,
 			solution: 'Correct! Norway was indeed known for its viking history.',
 		},
+		image: 'images/questions/q1.jpg',
 	},
 	{
 		text: 'Q2: Fantasy',
@@ -40,6 +41,7 @@ const steps = [
 			correctIndex: 1,
 			solution: 'Correct! Earth Elemental is the answer.',
 		},
+		image: 'images/questions/q2.webp',
 	},
 	{
 		text: 'Q3: Rock Music',
@@ -50,6 +52,7 @@ const steps = [
 			correctIndex: 3,
 			solution: 'Correct! Roger Waters is the legendary bassist of Pink Floyd.',
 		},
+		image: 'images/questions/q3.jpg',
 	},
 	{
 		text: 'Q4: D&D',
@@ -61,16 +64,18 @@ const steps = [
 			solution:
 				'Correct! Druids are powerful spellcasters connected to nature with the ability to change their shape at will.',
 		},
+		image: 'images/questions/q4.webp',
 	},
 	{
 		text: 'Q5: Rock Music',
 		description: 'Choose the correct answer:',
 		multipleChoice: {
 			question: 'Which band wrote the song called "Rhiannon"?',
-			choices: ['Fleetwood Mac', 'Foreigner', 'Floyd', 'Foo Fighters'],
+			choices: ['Fleetwood Mac', 'Foreigner', 'Black Sabbath', 'Metallica'],
 			correctIndex: 0,
 			solution: 'Correct! Fleetwood Mac created this iconic song.',
 		},
+		image: 'images/questions/q5.jpg',
 	},
 	{
 		text: 'Q6: D&D',
@@ -82,6 +87,7 @@ const steps = [
 			correctIndex: 0,
 			solution: 'Correct! Ogre is the answer.',
 		},
+		image: 'images/questions/q6.jpg',
 	},
 	{
 		text: 'Q7: Country names',
@@ -92,6 +98,7 @@ const steps = [
 			correctIndex: 3,
 			solution: 'Correct! The shape of Romania does indeed look like a fish when seen from afar.',
 		},
+		image: 'images/questions/q7.png',
 	},
 	{
 		text: 'Q8: Fantasy',
@@ -102,6 +109,7 @@ const steps = [
 			correctIndex: 1,
 			solution: 'Correct! Griffin is the answer.',
 		},
+		image: 'images/questions/q8.jpg',
 	},
 	{
 		text: 'Q9: Fantasy',
@@ -112,6 +120,7 @@ const steps = [
 			correctIndex: 1,
 			solution: 'Correct! Legolas is an Elf prince from the Woodland Realm.',
 		},
+		image: 'images/questions/q9.webp',
 	},
 	{
 		text: 'Q10: Decode the Secret Message!',
@@ -232,18 +241,19 @@ function createStepElement(step, index) {
 	}
 
 	if (step.multipleChoice) {
+		const questionText = document.createElement('div');
+		questionText.className = 'question-text';
+		questionText.textContent = step.multipleChoice.question;
+		div.appendChild(questionText);
+
 		const choicesContainer = document.createElement('div');
 		choicesContainer.className = 'choices-container';
-
-		const question = document.createElement('div');
-		question.className = 'question';
-		question.textContent = step.multipleChoice.question;
 
 		step.multipleChoice.choices.forEach((choice, i) => {
 			const button = document.createElement('button');
 			button.className = 'choice-btn';
 			button.textContent = choice;
-			button.addEventListener('click', () => handleChoiceClick(button, i, step.multipleChoice));
+			button.addEventListener('click', () => handleChoiceClick(button, i, step));
 			choicesContainer.appendChild(button);
 		});
 
@@ -251,12 +261,23 @@ function createStepElement(step, index) {
 		solution.className = 'solution';
 		solution.textContent = step.multipleChoice.solution;
 
-		div.appendChild(question);
 		div.appendChild(choicesContainer);
 		div.appendChild(solution);
-	}
 
-	if (step.image) {
+		// Add image if present, but initially hidden
+		if (step.image) {
+			const imgContainer = document.createElement('div');
+			imgContainer.className = 'delayed-image';
+
+			const img = document.createElement('img');
+			img.src = step.image;
+			img.alt = `Step ${index + 1}`;
+
+			imgContainer.appendChild(img);
+			div.appendChild(imgContainer);
+		}
+	} else if (step.image) {
+		// For non-multiple-choice steps, show image immediately
 		const img = document.createElement('img');
 		img.src = step.image;
 		img.alt = `Step ${index + 1}`;
@@ -284,20 +305,28 @@ function validateInput(value, correct) {
 	}
 }
 
-function handleChoiceClick(button, choiceIndex, multipleChoice) {
+function handleChoiceClick(button, choiceIndex, step) {
 	const nextBtn = document.getElementById('nextBtn');
 	const allChoices = button.parentElement.getElementsByClassName('choice-btn');
 	const solution = button.parentElement.nextElementSibling;
+	const delayedImage = solution.nextElementSibling;
 
 	// Reset all buttons
 	Array.from(allChoices).forEach((btn) => {
 		btn.classList.remove('correct', 'incorrect');
 	});
 
-	if (choiceIndex === multipleChoice.correctIndex) {
+	if (choiceIndex === step.multipleChoice.correctIndex) {
 		button.classList.add('correct');
 		solution.classList.add('visible');
 		nextBtn.disabled = false;
+
+		// Show image with delay if it exists
+		if (step.image && delayedImage) {
+			setTimeout(() => {
+				delayedImage.classList.add('visible');
+			}, 500);
+		}
 	} else {
 		button.classList.add('incorrect');
 	}
@@ -306,6 +335,12 @@ function handleChoiceClick(button, choiceIndex, multipleChoice) {
 function navigate(direction) {
 	const container = document.getElementById('stepContainer');
 	const steps = container.getElementsByClassName('step');
+
+	// Reset any visible delayed images in current step
+	const currentDelayedImage = steps[currentStep].querySelector('.delayed-image');
+	if (currentDelayedImage) {
+		currentDelayedImage.classList.remove('visible');
+	}
 
 	steps[currentStep].classList.remove('active');
 	currentStep += direction;
